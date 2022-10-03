@@ -147,10 +147,10 @@ e.g.
 
 ```
 {
-	"recipe_name":"all in the kitchen  chili",
-	"food_type_id":1,
-	"ingredients":"['prepared pizza crust', 'sausage patty', 'eggs', 'milk', 'salt and pepper', 'cheese']",
-	"nutrition":"[173.4, 18.0, 0.0, 17.0, 22.0, 35.0, 1.0]"
+    "recipe_name":"all in the kitchen  chili",
+    "food_type_id":1,
+    "ingredients":"['prepared pizza crust', 'sausage patty', 'eggs', 'milk', 'salt and pepper', 'cheese']",
+    "nutrition":"[173.4, 18.0, 0.0, 17.0, 22.0, 35.0, 1.0]"
 }
 
 ```
