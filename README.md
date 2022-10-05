@@ -35,3 +35,7 @@ $ docker system prune -a
 $ docker volume prune
 ```
 Note. if the database is corrupted, purging your existing docker data will allow it to be rebuilt from scratch.
+
+#Frontedn part
+cd frontend/bon-appetit-meal
+yarn start
