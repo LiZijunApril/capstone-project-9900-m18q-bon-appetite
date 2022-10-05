@@ -8,7 +8,7 @@ import schema
 import bcrypt
 import jwt
 from datetime import datetime
-from .models import Recipe, Review, db, User
+from .models import Recipe, db, User
 
 
 blueprint = flask.Blueprint("views", __name__)
@@ -174,50 +174,6 @@ CREATE_RECIPE_SCHEMA = schema.Schema(
 )
 
 
-@blueprint.route("/recipe/<recipe_id>", methods=["PUT"])
-@token_required
-def update_recipe_route(recipe_id):
-    try:
-        request = CREATE_RECIPE_SCHEMA.validate(flask.request.json.copy())
-    except:
-        return {"status": "Bad request"}, 400
-
-    current_user_id = flask.g.token["user_id"]
-    recipe = db.session.get(Recipe, recipe_id)
-    if not recipe:
-        return {"status": "Not Found"}, 404
-    if recipe.user_id != current_user_id:
-        return {"status": "Permission denied"}, 401
-
-    print("recipe", recipe)
-    for k in request:
-        if k == "recipe_name":
-            recipe.recipe_name = request["recipe_name"]
-        elif k == "food_type_id":
-            recipe.food_type_id = request["food_type_id"]
-        elif k == "ingredients":
-            recipe.ingredients = request["ingredients"]
-        elif k == "nutrition":
-            recipe.nutrition = request["nutrition"]
-
-    recipe.updated_at = datetime.now()
-
-    db.session.merge(recipe)
-    db.session.commit()
-
-    return flask.jsonify({"message": "success"})
-
-
-CREATE_RECIPE_SCHEMA = schema.Schema(
-    {
-        "recipe_name": schema.And(str, len),
-        "food_type_id": schema.And(schema.Use(int), lambda i: i > 0),
-        "ingredients": schema.And(str, len),
-        "nutrition": schema.And(str, len),
-    }
-)
-
-
 @blueprint.route("/recipe", methods=["POST"])
 @token_required
 def create_recipe_route():
@@ -253,7 +209,7 @@ def delete_recipe_route(recipe_id):
     the_recipe = db.session.get(Recipe, recipe_id)
     if not the_recipe:
         return {"status": "Not Found"}, 404
-
+        
     current_user_id = flask.g.token["user_id"]
     if the_recipe.user_id != current_user_id:
         return {"status": "Permission denied"}, 401
@@ -261,6 +217,7 @@ def delete_recipe_route(recipe_id):
     db.session.delete(the_recipe)
     db.session.commit()
     return flask.jsonify({"message": "success"})
+
 
 
 @blueprint.route("/follow/<followed_id>", methods=["POST"])
@@ -279,7 +236,7 @@ def create_follow_route(followed_id):
     db.session.merge(current_user)
     db.session.commit()
 
-    return flask.jsonify({"message": "success"})
+    return  flask.jsonify({"message": "success"})
 
 
 @blueprint.route("/follow/<followed_id>", methods=["DELETE"])
@@ -300,61 +257,4 @@ def delete_follow_route(followed_id):
     db.session.merge(current_user)
     db.session.commit()
 
-    return flask.jsonify({"message": "success"})
-
-
-CREATE_REVIEW_SCHEMA = schema.Schema(
-    {
-        "recipe_id": schema.And(schema.Use(int), lambda i: i > 0),
-        "description": schema.And(str, len),
-    }
-)
-
-
-@blueprint.route("/review", methods=["POST"])
-@token_required
-def create_review_route():
-    try:
-        request = CREATE_REVIEW_SCHEMA.validate(flask.request.json.copy())
-    except:
-        return {"status": "Bad request"}, 400
-
-    recipe = db.session.query(Recipe, request["recipe_id"])
-    if not recipe:
-        return {"status": "Not Found"}, 404
-
-    review = Review()
-    review.created_at = datetime.now()
-    review.recipe_id = request["recipe_id"]
-    review.description = request["description"]
-    review.user_id = flask.g.token["user_id"]
-    db.session.merge(review)
-    db.session.commit()
-
-    return flask.jsonify({"message": "success"})
-
-
-READ_REVIEW_SCHEMA = schema.Schema(
-    {
-        "recipe_id": schema.And(schema.Use(int), lambda i: i > 0),
-    }
-)
-
-
-@blueprint.route("/review", methods=["GET"])
-@token_required
-def read_review_route():
-    try:
-        request = READ_REVIEW_SCHEMA.validate(flask.request.args.copy())
-    except:
-        return {"status": "Bad request"}, 400
-
-    recipe = db.session.query(Recipe, request["recipe_id"])
-    if not recipe:
-        return {"status": "Not Found"}, 404
-
-    reviews = (
-        db.session.query(Review).filter(Review.recipe_id == request["recipe_id"]).all()
-    )
-    response = [{**m.to_dict()} for m in reviews]
-    return flask.jsonify(response)
+    return  flask.jsonify({"message": "success"})
