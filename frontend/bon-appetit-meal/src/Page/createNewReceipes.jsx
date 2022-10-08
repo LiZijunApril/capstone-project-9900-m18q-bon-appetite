@@ -1,15 +1,52 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Button, Card, List, Layout, Table, Space,Form, Input, message } from 'antd';
-import { PlayCircleOutlined } from '@ant-design/icons';
+import { Button, Card, List, Layout, Table, Upload,Form, Input, message, Modal, Empty } from 'antd';
+import { UploadOutlined } from '@ant-design/icons';
 import MenuBar from '../Components/navBar';
 import HttpRequest from '../utils/Http'
 
 
 export default function CreateNewRecipes () {
+    var step = 0;
+    const { TextArea } = Input;
 
     const navigate = useNavigate();
+    const [isModalOpen, setIsModalOpen] = useState(false);
+    const [stepDetails, setStepDetails] = useState([]);
+    const [details, setDetails] = useState([]);
+    const [fileList, setFileList] = useState([]);
+    const [curStepDetails, setCurStepDetails] = useState({});
     const {post} = HttpRequest()
+    const saveDetailsWord = (e) => {
+        // setStepDetails(e.target.value)
+        setDetails(e.target.value)
+        setCurStepDetails({
+            ...curStepDetails,
+            describe:e.target.value,
+        })
+    }
+    const showModal = () => {
+        setIsModalOpen(true);
+      };
+      const handleOk = () => {
+        let newDetials = []
+        newDetials = [...stepDetails]
+        newDetials.push(curStepDetails)
+        setStepDetails(newDetials)
+
+        setFileList([])
+        setDetails()
+        setCurStepDetails({})
+
+        setIsModalOpen(false);
+        
+      };
+    const handleCancel = () => {
+        setFileList([])
+        setDetails()
+        setCurStepDetails({})
+        setIsModalOpen(false);
+    };
     const onFinish = (values) => {
         console.log(values.ingredients.split(" "))
         values.food_type_id = parseInt(values.food_type_id)
@@ -26,6 +63,21 @@ export default function CreateNewRecipes () {
             }
         })
     };
+    const handleUpload = ({file}) => {
+        console.log(file)
+        var image_reader = new FileReader();
+        image_reader.readAsDataURL(file)
+        // setTimeout(()=>{console.log(image_reader.result)},1000)
+        image_reader.onload = function () {
+            console.log(image_reader.result)
+            setFileList([{ url: image_reader.result, name: file.name, thumbUrl: image_reader.result}])
+            setCurStepDetails({
+                ...curStepDetails,
+                imageFile:image_reader.result,
+            })
+        }
+    };
+
     // useEffect(() => {
     //     post('/recipes',{"limit":10})
     //     .then((res)=> {
@@ -40,8 +92,9 @@ export default function CreateNewRecipes () {
         //     setUpcomingList(res.meetingList.slice(0,3))
         // })
     // }, [])
-    function startGame (id) {
-        console.log(id)
+    function addStep()  {
+        step = step + 1;
+
         // navigate(`/mentorCourseDetails?courseID=${id}`)
 
     }
@@ -49,8 +102,10 @@ export default function CreateNewRecipes () {
     return (
         <Layout className='layout'>
             <MenuBar />
-            <div style={{margin:'20px 10px',display:'flex',flexDirection:'column',justifyContent: 'center',alignItems: 'center',height:'60vh'}}>
-            <p style={{margin:'20px 10px',color:'#FFA500',fontSize:'50px',fontWeight:'bold'}}>Create new receipes</p>
+            <Button shape='round' onClick={()=>{navigate('/')}} style={{backgroundColor:'gray',color:'white',fontSize:'20px',width:'10%',margin:' 20px 20px'}}>
+                Back
+            </Button>
+            <div style={{margin:'20px 10px',display:'flex',flexDirection:'column',justifyContent: 'center',alignItems: 'center'}}>
                 <Form
                     labelCol={{
                         span: 10,
@@ -61,6 +116,7 @@ export default function CreateNewRecipes () {
                     layout="horizontal"
                     onFinish={onFinish}
                     >
+                    
                     <Form.Item
                         name="recipe_name"
                         label="recipe name"
@@ -94,17 +150,48 @@ export default function CreateNewRecipes () {
                         />
                     </Form.Item>
 
-                    <Form.Item>
+                    {<List
+                        locale={{emptyText:' '}}
+                        // grid={{ gutter: 8, column: 4 }}
+                        dataSource={stepDetails}
+                        renderItem={(item,index) => (
+                            <List.Item>
+                                <div style={{display:'flex',flexDirection:'column'}}>
+                                    <p>step:{index+1}</p>
+                                    <p style={{color:'#FFA500',fontSize:'15px',fontWeight:'bold'}}>
+                                        {item.describe}
+                                    </p>
+                                    {
+                                        item.hasOwnProperty("imageFile") ? <img src={`${item.imageFile}`}/> : <></>
+                                    }
+                                </div>
+                            </List.Item>
+                            
+                        )}
+                        />}
+            <Button type="primary" onClick={showModal}>
+                Add Step
+            </Button>
+            <Form.Item>
                         <Button type="primary" htmlType="submit" className="login-form-button" style={{color:'white',backgroundColor:'#2EB394',marginTop:'20px',borderRadius:'10px'}}>
-                            Create
+                            Confirm
                         </Button>
-                        <a onClick={()=>{navigate('/')}} style={{textDecoration:'underline',color:'green',fontSize:'20px',marginLeft:'20px',marginTop:'20px'}}>
-                            Cancel
-                        </a>
                     </Form.Item>
+                    
                 </Form>
-                
             </div>
+            
+            <Modal title="Basic Modal" open={isModalOpen} onOk={handleOk} onCancel={handleCancel}>
+                <p>Add Describe:</p>
+                <TextArea value={details} onChange={saveDetailsWord} rows={4} />
+                <p>Upload photo:</p>
+                <Upload
+                customRequest={handleUpload}
+                fileList={fileList}
+                >
+                    <Button icon={<UploadOutlined />}>Click to Upload</Button>
+                </Upload>
+            </Modal>
         </Layout>
     )
 }

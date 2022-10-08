@@ -17,10 +17,8 @@ export default function MenuBar () {
 
 return (
     <div style={{display:'flex',backgroundColor:'gray',height:'5%'}}>
-        {/* <div className="logo" onClick={()=>{navigate('/')}}/> */}
-        <div onClick={()=>{navigate('/')}}>
-            bar
-        </div>
+            {/* <embed src='./logo.svg'></embed> */}
+        <Button onClick={()=>{navigate('/')}} shape='round' style={{margin:'8px 5px', backgroundColor:'white', margin:'auto 20px'}} >Home</Button>
         <Button onClick={()=>{createNewRecipe()}} shape='round' style={{margin:'8px 5px', backgroundColor:'white', margin:'auto 20px'}} >Create New Recipe</Button>
         <Button onClick={()=>{search()}} shape='round' style={{margin:'8px 5px', backgroundColor:'white', margin:'auto 20px'}} >Search</Button>
         <Button icon={<BellOutlined />} onClick={()=>{search()}} shape='round' style={{margin:'8px 5px', backgroundColor:'white', margin:'auto 20px'}} ></Button>

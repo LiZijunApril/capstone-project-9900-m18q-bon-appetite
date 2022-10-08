@@ -22,6 +22,7 @@ export default function UserBar () {
                     sessionStorage.removeItem('userToken')
                     // sessionStorage.removeItem('courseList')
                     navigate('/')
+                    window.location.reload()
                 } }>
                     Logout
                 </a>

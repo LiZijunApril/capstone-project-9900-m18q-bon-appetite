@@ -1,9 +1,11 @@
 import {  message } from 'antd';
 import { getToken } from './TokenUtils';
-
+import { useNavigate } from 'react-router-dom';
 const BASE_URL = "http://localhost:8000/api";
 
 export default function HttpRequest () {
+    var a = 0;
+    const navigate = useNavigate();
     /**
      * @description: fetch Function
      * @param {string} url
@@ -19,9 +21,22 @@ export default function HttpRequest () {
                     console.log(res)
                     if (res.hasOwnProperty("status")) {
                         console.log(res)
-                        message.error(res.status);
+                        if(res.status === "Unauthorized"){
+                            message.error("username or password is Wrong!"+(a+1));
+                            a = a+1;
+                            if(a===5){
+                                message.error("You have reached the maximum number of attempts and are about to return to the home page!")
+                                function backH(){ 
+                                    navigate('/'); 
+                                } 
+                                setTimeout(backH,1000);
+                            }
+                        } else {
+                            message.error(res.status);
+                        }
                         rejected({ msg: res.status });
                     } else {
+                        a = 0;
                         resolved(res);
                     }
                 }).catch((err) => {

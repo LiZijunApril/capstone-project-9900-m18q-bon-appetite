@@ -49,7 +49,7 @@ export default function RecipeDetails () {
                 </div>
                 <div style={{margin:'20px 10px',display:'flex',flexDirection:'column',width:'40%'}}>
                     <p style={{margin:'20px 10px',color:'#FFA500',fontSize:'15px',fontWeight:'bold'}}>
-                        create user name: {recipeDetails.user_id}
+                        create user name: <a>{recipeDetails.user_id}</a>
                     </p>
                     <p style={{margin:'20px 10px',color:'#FFA500',fontSize:'15px',fontWeight:'bold'}}>
                         type: {recipeDetails.food_type_name}

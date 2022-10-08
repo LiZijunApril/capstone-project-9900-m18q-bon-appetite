@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button, Card, List, Layout, Table, Space } from 'antd';
-import { DeleteOutlined } from '@ant-design/icons';
+import { DeleteOutlined,EditOutlined } from '@ant-design/icons';
 import MenuBar from '../Components/navBar';
 import HttpRequest from '../utils/Http'
 
@@ -38,6 +38,27 @@ export default function Home () {
         //     setUpcomingList(res.meetingList.slice(0,3))
         // })
     }, [])
+    function editRecipe (id) {
+        console.log(id)
+        alert("edit")
+        // deletes(`/recipe/${id}`)
+        // .then((res)=>{
+        //     console.log(res)
+        //     if(res.message === 'success'){
+        //         recipesList.map(item => {
+        //             if(item.recipe_id === id){
+        //                 // recipesList.splice(recipesList.indexOf(item),1)
+        //                 getAllList();
+        //             }
+                    
+        //         })
+        //         // saveRecipesList(recipesList)
+        //     }
+        // })
+        // navigate(`/mentorCourseDetails?courseID=${id}`)
+
+    }
+    
     function deleteRecipe (id) {
         console.log(id)
         deletes(`/recipe/${id}`)
@@ -80,8 +101,9 @@ export default function Home () {
                                 />
                                 }
                                 
-                                actions={ item.user_id === "5627c307-2175-4b8c-a796-001710ed41" ? [
+                                actions={ item.user_id === "650f32dc-5b89-491f-bee6-0653c0c94183" ? [
                                     <DeleteOutlined key="open" onClick={ () => { deleteRecipe(item.recipe_id) }}/>,
+                                    <EditOutlined key="open" onClick={ () => { editRecipe(item.recipe_id) }}/>,
                                     ] : []}
                                 
                                 
