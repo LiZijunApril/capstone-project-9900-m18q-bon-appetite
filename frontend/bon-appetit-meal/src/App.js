@@ -7,6 +7,9 @@ import { Table, Modal, Space, Layout, Button, Form, Input, message } from 'antd'
 import Home from './Page/home.jsx';
 import Login from './Page/Login.jsx';
 import Register from './Page/register.jsx'
+import CreateNewRecipes from './Page/createNewReceipes';
+import Search from './Page/search';
+import RecipeDetails from './Page/recipeDetails';
 
 const { Content } = Layout;
 
@@ -25,9 +28,10 @@ function App() {
               <Route path='/' element={<Home />}/>
               <Route path='login' element={<Login />}/>
               <Route path='register' element={<Register />}/>
-              {/* <Route path='mentorLogin' element={<MentorLogin />}/>
-              <Route path='mentorCoursePages' element={<MentorCourasPages />}/>
-              <Route path='mentorCourseDetails' element={<MentorCourasDetails />}/>
+              <Route path='createNewRecipes' element={<CreateNewRecipes />}/>
+              <Route path='search' element={<Search />}/>
+              <Route path='recipeDetails' element={<RecipeDetails />}/>
+              {/* <Route path='mentorCourseDetails' element={<MentorCourasDetails />}/>
               <Route path='mentorRegularMeeting' element={<MentorRegularMeeting />}/>
               <Route path='mentorOneOffMeeting' element={<MentorOneOffMeeting />}/>
               <Route path='mentorGroupManagement' element={<MentorGroupManagement />}/>

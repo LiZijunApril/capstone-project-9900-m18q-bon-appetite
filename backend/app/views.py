@@ -218,7 +218,7 @@ CREATE_RECIPE_SCHEMA = schema.Schema(
 )
 
 
-@blueprint.route("/recipe", methods=["POST"])
+@blueprint.route("/addrecipe", methods=["POST"])
 @token_required
 def create_recipe_route():
     try:

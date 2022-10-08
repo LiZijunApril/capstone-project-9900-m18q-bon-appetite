@@ -1,4 +1,5 @@
 import {  message } from 'antd';
+import { getToken } from './TokenUtils';
 
 const BASE_URL = "http://localhost:8000/api";
 
@@ -16,12 +17,12 @@ export default function HttpRequest () {
                 .then((res) => res.json())
                 .then((res) => {
                     console.log(res)
-                    if (res.code === 200) {
-                        resolved(res.data);
+                    if (res.hasOwnProperty("status")) {
+                        console.log(res)
+                        message.error(res.status);
+                        rejected({ msg: res.status });
                     } else {
-                        
-                        message.error(res.msg);
-                        rejected({ msg: res.msg });
+                        resolved(res);
                     }
                 }).catch((err) => {
                     message.error(err);
@@ -41,13 +42,46 @@ export default function HttpRequest () {
             method: "POST",
             headers: {
             "Content-Type": "application/json",
-            // Authorization: getToken(),
+            Authorization: `Bearer ${getToken()}`,
         },
         body: JSON.stringify(data),
         });
     };
+    /**
+     * @description:  get
+     * @param {string} url
+     * @param {object} params
+     * @return {Promise}
+     */
+     const get = (url, params) => {
+        if (params) {
+            const paramsArray = [];
+            Object.keys(params).forEach((key) =>
+                paramsArray.push(`${key}=${params[key]}`)
+            );
+            url += "?" + paramsArray.join("&");
+        }
+
+        return request(url, {
+            method: "GET",
+            headers: {
+                Authorization: `Bearer ${getToken()}`,
+        },
+        });
+    };
+    const deletes = (url) => {
+
+        return request(url, {
+            method: "DELETE",
+            headers: {
+                Authorization: `Bearer ${getToken()}`,
+        },
+        });
+    };
 
     return {
-        post
+        post,
+        deletes,
+        get
     };
 }
