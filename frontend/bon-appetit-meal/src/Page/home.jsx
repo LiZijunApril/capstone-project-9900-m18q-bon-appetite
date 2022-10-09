@@ -4,6 +4,7 @@ import { Button, Card, List, Layout, Table, Space } from 'antd';
 import { DeleteOutlined,EditOutlined } from '@ant-design/icons';
 import MenuBar from '../Components/navBar';
 import HttpRequest from '../utils/Http'
+import User from '../utils/User';
 
 
 export default function Home () {
@@ -11,8 +12,12 @@ export default function Home () {
     const { Meta } = Card;
     const navigate = useNavigate();
     const {get,deletes} = HttpRequest()
+    const {getUser} = User();
     const [recipesList,saveRecipesList] = useState();
-
+    const [curUserId,setCurUserId] = useState();
+    
+    
+    console.log(curUserId)
     function getAllList () {
         get('/recipes',{"limit":10})
         .then((res)=> {
@@ -25,6 +30,8 @@ export default function Home () {
 
     useEffect(() => {
         getAllList();
+        setCurUserId(getUser);
+        
         // get('/recipes',{"limit":10})
         // .then((res)=> {
         //     console.log("recipes list",res)
@@ -96,12 +103,12 @@ export default function Home () {
                                 hoverable
                                 style={{ width: '70%' }}
                                 cover={
-                                <img
-                                    src={ item.courseImg }
+                                <img onClick={()=>{ navigate(`/recipeDetails?recipeId=${item.recipe_id}`)}}
+                                    src={ item.recipe_img }
                                 />
                                 }
                                 
-                                actions={ item.user_id === "650f32dc-5b89-491f-bee6-0653c0c94183" ? [
+                                actions={ item.user_id === curUserId ? [
                                     <DeleteOutlined key="open" onClick={ () => { deleteRecipe(item.recipe_id) }}/>,
                                     <EditOutlined key="open" onClick={ () => { editRecipe(item.recipe_id) }}/>,
                                     ] : []}

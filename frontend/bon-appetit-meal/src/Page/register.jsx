@@ -3,25 +3,50 @@ import { useNavigate } from 'react-router-dom';
 import { Form, Input, Button, message,Select, InputNumber } from 'antd';
 
 import HttpRequest from '../utils/Http'
+import { useState } from 'react';
 
 
 export default function Register () {
     const {post} = HttpRequest()
     const { Option } = Select;
+    let emailAvilible = false
     const navigate = useNavigate();
     const onFinish = (values) => {
         console.log(values)
-        post('/register',values)
+        const postValues = {"email_address":values.email_address,"password":values.password,"display_name":values.display_name}
+        // post('/register',values)
+        post('/register',postValues)
         .then((res) => {
             console.log(res.msg)
             if (res) {
                 console.log(res)
                 // saveToken(res.token)
                 // saveUser(res.stuent)
-                // navigate('/studentCoursePages')
+                navigate('/')
             }
         })
     };
+    function checkEmailAvibile (e) {
+        console.log(e.target.value)
+        const value = e.target.value
+        const postValue = {"email_address":value}
+        post('/existemail',postValue)
+        .then((res) => {
+            if (res) {
+                console.log(res)
+                if (res.is_exist === 0){
+                    emailAvilible = true
+                    message.success("It can be create!")
+                } else {
+                    emailAvilible = false
+                    message.error("It can't be create!")
+                }
+                // saveToken(res.token)
+                // saveUser(res.stuent)
+                // navigate('/studentCoursePages')
+            }
+        })
+    }
     const prefixSelector = (
         <Form.Item name="prefix" noStyle>
             <Select
@@ -73,18 +98,16 @@ export default function Register () {
                         rules={[{ required: true, message: 'Please input your email address!' },
                         ({ getFieldValue }) => ({
                             validator(_, value) {
-                            var pwdRegex = new RegExp('^[a-zA-Z0-9_-]+@[a-zA-Z0-9_-]+(\.[a-zA-Z0-9_-]+)+$');
+                            var pwdRegex = new RegExp('^[a-zA-Z0-9_-]+@[a-zA-Z0-9_-]+\\.[a-zA-Z0-9_-]+$');
                             console.log(pwdRegex.test(value))
-                            if (!value || pwdRegex.test(value)) {
-                                return Promise.resolve();
+                            if ((!value || pwdRegex.test(value))) {
+                                    return Promise.resolve();
                             }
-
                             return Promise.reject(new Error("Please Input the correct email address"));
                             },
                             }),]}
-                            hasFeedback
                     >
-                        <Input placeholder="email address"/>
+                        <Input onBlur={(e)=>checkEmailAvibile(e)} placeholder="email address"/>
                     </Form.Item>
                     <Form.Item
                         name="phone"
@@ -101,7 +124,6 @@ export default function Register () {
                             return Promise.reject(new Error("Please Input the correct phone number"));
                             },
                             }),]}
-                            hasFeedback
                     >
                         <Input
                             addonBefore={prefixSelector}

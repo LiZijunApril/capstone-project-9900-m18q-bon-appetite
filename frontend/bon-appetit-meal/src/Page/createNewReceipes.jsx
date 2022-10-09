@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Button, Card, List, Layout, Table, Upload,Form, Input, message, Modal, Empty } from 'antd';
-import { UploadOutlined } from '@ant-design/icons';
+import { Button, Select, List, Layout, Table, Upload,Form, Input, message, Modal, Empty } from 'antd';
+import { PlusOutlined,UploadOutlined } from '@ant-design/icons';
 import MenuBar from '../Components/navBar';
 import HttpRequest from '../utils/Http'
 
@@ -9,12 +9,15 @@ import HttpRequest from '../utils/Http'
 export default function CreateNewRecipes () {
     var step = 0;
     const { TextArea } = Input;
+    const { Option } = Select;
 
     const navigate = useNavigate();
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [stepDetails, setStepDetails] = useState([]);
     const [details, setDetails] = useState([]);
     const [fileList, setFileList] = useState([]);
+    const [photoList, setPhotoList] = useState([]);
+    const [photo, setPhoto] = useState([]);
     const [curStepDetails, setCurStepDetails] = useState({});
     const {post} = HttpRequest()
     const saveDetailsWord = (e) => {
@@ -49,17 +52,20 @@ export default function CreateNewRecipes () {
     };
     const onFinish = (values) => {
         console.log(values.ingredients.split(" "))
-        values.food_type_id = parseInt(values.food_type_id)
-        values.ingredients = `${values.ingredients.split(" ")}`
-        values.nutrition = `${values.nutrition.split(" ").map(Number)}`
-        console.log(values)
+        const postValues = {}
+        postValues.food_type_id = parseInt(values.food_type_id)
+        postValues.ingredients = `${values.ingredients.split(" ")}`
+        postValues.nutrition = `${values.nutrition.split(" ").map(Number)}`
+        postValues.recipe_img = photo
+        postValues.recipe_name = values.recipe_name
+        console.log(postValues)
         
-        post('/addrecipe',values)
+        post('/recipe',postValues)
         .then((res) => {
-            // console.log(res.msg)
-            if (res.message === 'success') {
+            console.log(res)
+            if (res) {
                 message.success("Create new recipe successful")
-                navigate('/')
+                setTimeout(()=>{navigate(`/recipeDetails?recipeId=${res.recipe_id}`)})
             }
         })
     };
@@ -77,6 +83,17 @@ export default function CreateNewRecipes () {
             })
         }
     };
+    const handleUploadPhoto = ({file}) => {
+        console.log(file)
+        var image_reader = new FileReader();
+        image_reader.readAsDataURL(file)
+        // setTimeout(()=>{console.log(image_reader.result)},1000)
+        image_reader.onload = function () {
+            console.log(image_reader.result)
+            setPhotoList([{ url: image_reader.result, name: file.name, thumbUrl: image_reader.result}])
+            setPhoto(image_reader.result)
+        }
+    };
 
     // useEffect(() => {
     //     post('/recipes',{"limit":10})
@@ -92,12 +109,6 @@ export default function CreateNewRecipes () {
         //     setUpcomingList(res.meetingList.slice(0,3))
         // })
     // }, [])
-    function addStep()  {
-        step = step + 1;
-
-        // navigate(`/mentorCourseDetails?courseID=${id}`)
-
-    }
     
     return (
         <Layout className='layout'>
@@ -126,12 +137,22 @@ export default function CreateNewRecipes () {
                     </Form.Item>
                     <Form.Item
                         name="food_type_id"
-                        label="food type id"
+                        label="meal type"
                         rules={[{ required: true, message: 'Please input your food type id!' }]}
                     >
-                        <Input
-                        placeholder="Password"
-                        />
+                        <Select
+                            initialvalues="1"
+                            style={{
+                                width: 200,
+                            }}
+                            // onChange={handleChange}
+                            >
+                            <Option value="1">Healthy</Option>
+                            <Option value="2">Veg</Option>
+                            <Option value="3">Non-veg</Option>
+                            <Option value="4">Veg dessert</Option>
+                            <Option value="5">Non-Veg dessert</Option>
+                        </Select>
                     </Form.Item>
                     <Form.Item
                         name="ingredients"
@@ -146,10 +167,23 @@ export default function CreateNewRecipes () {
                         rules={[{ required: true, message: 'Please input your food type id!' }]}
                     >
                         <Input
-                        placeholder="Password"
+                        placeholder="nutrition"
                         />
                     </Form.Item>
 
+                    <Form.Item 
+                    name="Upload" 
+                        label="Upload" 
+                        // valuePropName="fileList" 
+                        rules={[{ required: true, message: 'Please upload your photo!' }]}
+                    >
+                        <Upload
+                            customRequest={handleUploadPhoto}
+                            fileList={photoList}
+                            >
+                                <Button icon={<UploadOutlined />}>Click to Upload</Button>
+                        </Upload>
+                    </Form.Item>
                     {<List
                         locale={{emptyText:' '}}
                         // grid={{ gutter: 8, column: 4 }}

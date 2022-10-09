@@ -1,17 +1,14 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button, Card, List, Layout, Table, Space,Form, Input, message } from 'antd';
-import { DeleteOutlined } from '@ant-design/icons';
 import MenuBar from '../Components/navBar';
 import HttpRequest from '../utils/Http'
 
-
 export default function Search () {
-
     const navigate = useNavigate();
     const {get} = HttpRequest()
     const [resultList,setResultList] = useState([])
-    const { Meta } = Card;
+    const { Meta } = Card;;
 
     const onFinish = (values) => {
         // console.log(values.ingredients.split(" "))
@@ -29,27 +26,7 @@ export default function Search () {
             // }
         })
     };
-    console.log(resultList)
-    // useEffect(() => {
-    //     post('/recipes',{"limit":10})
-    //     .then((res)=> {
-    //         console.log("recipes list",res)
 
-            // setCourseList(res.courselist)
-            // setcourseId(res.courselist[0].courseId)
-        // })
-        // get('/teacher/queryWillMeetingList')
-        // .then((res)=> {
-        //     console.log('upcoming is ', res)
-        //     setUpcomingList(res.meetingList.slice(0,3))
-        // })
-    // }, [])
-    function startGame (id) {
-        console.log(id)
-        // navigate(`/mentorCourseDetails?courseID=${id}`)
-
-    }
-    
     return (
         <Layout className='layout'>
             <MenuBar />
@@ -83,7 +60,7 @@ export default function Search () {
                 </Form>
                 <div style={{  margin:'10px 20px'}}>
                         {<List
-                        grid={{ gutter: 32, column: 1 }}
+                        grid={{ gutter: 8, column: 4 }}
                         dataSource={resultList}
                         renderItem={item => (
                             <List.Item>
@@ -91,8 +68,8 @@ export default function Search () {
                                 hoverable
                                 style={{ width: '70%' }}
                                 cover={
-                                <img onClick={()=>{ navigate('/')}}
-                                    src={ item.courseImg }
+                                <img onClick={()=>{ navigate(`/recipeDetails?recipeId=${item.recipe_id}`)}}
+                                    src={ item.recipe_img }
                                 />
                                 }
                             >

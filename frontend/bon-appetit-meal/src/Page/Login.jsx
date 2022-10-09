@@ -8,7 +8,7 @@ import User from '../utils/User';
 
 
 export default function Login () {
-    const {post} = HttpRequest()
+    const {post,get} = HttpRequest()
     const { saveUser } = User();
     var a = 0;
     const t = setTimeout(function(){navigate('/')},300000)
@@ -24,9 +24,16 @@ export default function Login () {
                 console.log(res)
                 saveToken(res.token)
                 clearTimeout(t);
-                message.success("login sucessful")
-                // saveUser(res.stuent)
-                setTimeout(function(){navigate('/')},500)
+                get('/currentuser')
+                .then((res)=>{
+                    if(res){
+                        console.log(res)
+                        saveUser(res.user_id)
+                        message.success("login sucessful")
+                        setTimeout(function(){navigate('/')},500)
+                    }
+                })
+                
             }
         })
     };
