@@ -11,8 +11,10 @@ class User(db.Model):
         primaryjoin="User.user_id == FollowedAssociation.user_id",
         secondaryjoin="User.user_id == FollowedAssociation.followed_id",
     )
-    display_name = db.Column(db.TEXT)
+    username = db.Column(db.TEXT, unique=True)
+    nickname = db.Column(db.TEXT)
     email_address = db.Column(db.TEXT, unique=True)
+    phone = db.Column(db.TEXT)
     hash = db.Column(db.TEXT)
     user_id = db.Column(db.TEXT, primary_key=True)
     recipes = db.relationship("Recipe", primaryjoin="Recipe.user_id == User.user_id")
@@ -20,8 +22,10 @@ class User(db.Model):
 
     def to_dict(self):
         return {
-            "display_name": self.display_name,
+            "username": self.username,
+            "nickname": self.nickname,
             "email_address": self.email_address,
+            "phone": self.phone,
             "user_id": self.user_id,
         }
 
@@ -46,9 +50,10 @@ class FoodType(db.Model):
 
 class Recipe(db.Model):
     recipe_id = db.Column(db.BIGINT, primary_key=True)
-    recipe_name = db.Column(db.TEXT,unique=True)
+    recipe_name = db.Column(db.TEXT, unique=True)
     ingredients = db.Column(db.TEXT)
     nutrition = db.Column(db.TEXT)
+    step = db.Column(db.TEXT)
     recipe_img = db.Column(db.TEXT)
     user_id = db.Column(db.ForeignKey(User.user_id))
     user = db.relationship("User", overlaps="recipes")
@@ -61,7 +66,9 @@ class Recipe(db.Model):
         return {
             "recipe_id": self.recipe_id,
             "recipe_img": self.recipe_img,
+            "step": self.step,
             "user_id": self.user_id,
+            "username": self.user.username,
             "recipe_name": self.recipe_name,
             "food_type_name": self.food_type.food_type_name,
             "ingredients": self.ingredients,

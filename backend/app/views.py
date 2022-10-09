@@ -61,7 +61,9 @@ def is_email(email_address):
 REGISTER_SCHEMA = schema.Schema(
     {
         "email_address": schema.And(str, len, is_email),
-        "display_name": schema.And(str, len),
+        "username": schema.And(str, len),
+        "nickname": schema.And(str, len),
+        "phone": schema.And(str, len),
         "password": schema.And(str, len),
     }
 )
@@ -77,7 +79,10 @@ def register_route():
         return {"status": "Bad request"}, 400
 
     email_address = request["email_address"]
-    display_name = request["display_name"]
+    username = request["username"]
+    nickname = request["nickname"]
+    phone = request["phone"]
+
     password = request["password"]
 
     if db.session.query(User).filter(User.email_address == email_address).first():
@@ -86,7 +91,9 @@ def register_route():
     user = User()
     user.user_id = str(uuid.uuid4())
     user.email_address = email_address
-    user.display_name = display_name
+    user.username = username
+    user.nickname = nickname
+    user.phone = phone
     user.hash = bcrypt.hashpw(password.encode(), bcrypt.gensalt()).decode()
     db.session.merge(user)
     db.session.commit()
@@ -114,8 +121,27 @@ def exist_email_route():
     return flask.jsonify({"is_exist": 0})
 
 
+EXIST_USERNAME_SCHEMA = schema.Schema({"username": schema.And(str, len)})
+
+
+@blueprint.route("/existusername", methods=["POST"])
+def exist_username_route():
+    if not isinstance(flask.request.json, dict):
+        return {"status": "Bad request"}, 400
+    try:
+        request = EXIST_USERNAME_SCHEMA.validate(flask.request.json.copy())
+    except:
+        return {"status": "Bad request"}, 400
+
+    username = request["username"]
+    if db.session.query(User).filter(User.username == username).first():
+        return flask.jsonify({"is_exist": 1})
+
+    return flask.jsonify({"is_exist": 0})
+
+
 TOKEN_SCHEMA = schema.Schema(
-    {"email_address": schema.And(str, len, is_email), "password": schema.And(str, len)}
+    {"username": schema.And(str, len), "password": schema.And(str, len)}
 )
 
 
@@ -128,10 +154,10 @@ def login_route():
     except:
         return {"status": "Bad request"}, 400
 
-    email_address = request["email_address"]
+    username = request["username"]
     password = request["password"]
 
-    user = db.session.query(User).filter(User.email_address == email_address).first()
+    user = db.session.query(User).filter(User.username == username).first()
     if user is None:
         return {"status": "Unauthorized"}, 401
     if not bcrypt.checkpw(password.encode(), user.hash.encode()):
@@ -190,9 +216,10 @@ def read_recipe_route(recipe_id):
     return flask.jsonify(recipe.to_dict())
 
 
-CREATE_RECIPE_SCHEMA = schema.Schema(
+UPDATE_RECIPE_SCHEMA = schema.Schema(
     {
         "recipe_name": schema.And(str, len),
+        "step": schema.And(str, len),
         "recipe_img": schema.And(str, len),
         "food_type_id": schema.And(schema.Use(int), lambda i: i > 0),
         "ingredients": schema.And(str, len),
@@ -205,7 +232,7 @@ CREATE_RECIPE_SCHEMA = schema.Schema(
 @token_required
 def update_recipe_route(recipe_id):
     try:
-        request = CREATE_RECIPE_SCHEMA.validate(flask.request.json.copy())
+        request = UPDATE_RECIPE_SCHEMA.validate(flask.request.json.copy())
     except:
         return {"status": "Bad request"}, 400
 
@@ -227,6 +254,8 @@ def update_recipe_route(recipe_id):
             recipe.nutrition = request["nutrition"]
         elif k == "recipe_img":
             recipe.recipe_img = request["recipe_img"]
+        elif k == "step":
+            recipe.step = request["step"]
 
     recipe.updated_at = datetime.now()
 
@@ -239,6 +268,7 @@ def update_recipe_route(recipe_id):
 CREATE_RECIPE_SCHEMA = schema.Schema(
     {
         "recipe_name": schema.And(str, len),
+        "step": schema.And(str, len),
         "recipe_img": schema.And(str, len),
         "food_type_id": schema.And(schema.Use(int), lambda i: i > 0),
         "ingredients": schema.And(str, len),
@@ -267,6 +297,7 @@ def create_recipe_route():
     recipe.created_at = datetime.now()
     recipe.recipe_name = request["recipe_name"]
     recipe.recipe_img = request["recipe_img"]
+    recipe.step = request["step"]
     recipe.food_type_id = request["food_type_id"]
     recipe.ingredients = request["ingredients"]
     recipe.nutrition = request["nutrition"]
