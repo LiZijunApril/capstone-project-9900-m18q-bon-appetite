@@ -10,18 +10,23 @@ import User from '../utils/User';
 export default function Login () {
     const {post} = HttpRequest()
     const { saveUser } = User();
-
+    var a = 0;
+    const t = setTimeout(function(){navigate('/')},300000)
     const navigate = useNavigate();
     const onFinish = (values) => {
         console.log(values)
+        
         post('/login',values)
         .then((res) => {
-            console.log(res.msg)
+            console.log(res)
             if (res) {
+                a = 0;
                 console.log(res)
                 saveToken(res.token)
+                clearTimeout(t);
+                message.success("login sucessful")
                 // saveUser(res.stuent)
-                // navigate('/studentCoursePages')
+                setTimeout(function(){navigate('/')},500)
             }
         })
     };
@@ -33,18 +38,26 @@ export default function Login () {
             <div style={{margin:'20px 10px',display:'flex',flexDirection:'column',justifyContent: 'center',alignItems: 'center',height:'60vh'}}>
             <p style={{margin:'20px 10px',color:'#FFA500',fontSize:'50px',fontWeight:'bold'}}>Please log in</p>
                 <Form
+                labelCol={{
+                    span: 10,
+                }}
+                wrapperCol={{
+                    span: 40,
+                }}
                     name="normal_login"
                     className="login-form"
                     onFinish={onFinish}
                     >
                     <Form.Item
                         name="email_address"
+                        label="email address"
                         rules={[{ required: true, message: 'Please input your username!' }]}
                     >
-                        <Input placeholder="zId"/>
+                        <Input placeholder="username"/>
                     </Form.Item>
                     <Form.Item
                         name="password"
+                        label="password"
                         rules={[{ required: true, message: 'Please input your Password!' }]}
                     >
                         <Input
