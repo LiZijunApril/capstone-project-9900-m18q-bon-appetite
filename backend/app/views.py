@@ -8,11 +8,9 @@ import schema
 import bcrypt
 import jwt
 from datetime import datetime
-from .models import Recipe, Review, db, User
-
+from .models import FoodType, Recipe, Review, db, User
 
 blueprint = flask.Blueprint("views", __name__)
-
 
 SECOND = 1
 MINUTE = 60 * SECOND
@@ -130,6 +128,14 @@ READ_RECIPES_SCHEMA = schema.Schema(
 )
 
 
+@blueprint.route("/currentuser", methods=["GET"])
+@token_required
+def read_current_user_route():
+    current_user_id = flask.g.token["user_id"]
+    current_user = db.session.get(User, current_user_id)
+    return flask.jsonify(current_user.to_dict())
+
+
 @blueprint.route("/recipes", methods=["GET"])
 @token_required
 def read_recipes_route():
@@ -160,8 +166,7 @@ def read_recipe_route(recipe_id):
     if not recipe:
         return {"status": "Not Found"}, 404
 
-    response = {**recipe.to_dict()}
-    return flask.jsonify(response)
+    return flask.jsonify(recipe.to_dict())
 
 
 CREATE_RECIPE_SCHEMA = schema.Schema(
@@ -205,7 +210,7 @@ def update_recipe_route(recipe_id):
     db.session.merge(recipe)
     db.session.commit()
 
-    return flask.jsonify({"message": "success"})
+    return flask.jsonify(recipe.to_dict())
 
 
 CREATE_RECIPE_SCHEMA = schema.Schema(
@@ -218,7 +223,7 @@ CREATE_RECIPE_SCHEMA = schema.Schema(
 )
 
 
-@blueprint.route("/addrecipe", methods=["POST"])
+@blueprint.route("/recipe", methods=["POST"])
 @token_required
 def create_recipe_route():
     try:
@@ -227,9 +232,9 @@ def create_recipe_route():
         return {"status": "Bad request"}, 400
 
     if (
-        db.session.query(Recipe)
-        .filter(Recipe.recipe_name == request["recipe_name"])
-        .first()
+            db.session.query(Recipe)
+                    .filter(Recipe.recipe_name == request["recipe_name"])
+                    .first()
     ):
         return {"status": "Conflict"}, 409
 
@@ -244,7 +249,8 @@ def create_recipe_route():
     db.session.merge(recipe)
     db.session.commit()
 
-    return flask.jsonify({"message": "success"})
+    addRecipe = db.session.query(Recipe).filter(Recipe.recipe_name == request["recipe_name"]).first()
+    return flask.jsonify(addRecipe.to_dict())
 
 
 @blueprint.route("/recipe/<recipe_id>", methods=["DELETE"])
@@ -357,4 +363,12 @@ def read_review_route():
         db.session.query(Review).filter(Review.recipe_id == request["recipe_id"]).all()
     )
     response = [{**m.to_dict()} for m in reviews]
+    return flask.jsonify(response)
+
+
+@blueprint.route("/foodtypes", methods=["GET"])
+@token_required
+def read_foodtypes_route():
+    food_types = db.session.query(FoodType)
+    response = [{**m.to_dict()} for m in food_types]
     return flask.jsonify(response)
