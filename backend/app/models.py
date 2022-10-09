@@ -49,7 +49,6 @@ class Recipe(db.Model):
     recipe_name = db.Column(db.TEXT,unique=True)
     ingredients = db.Column(db.TEXT)
     nutrition = db.Column(db.TEXT)
-    recipe_img = db.Column(db.TEXT)
     user_id = db.Column(db.ForeignKey(User.user_id))
     user = db.relationship("User", overlaps="recipes")
     created_at = db.Column(db.TIMESTAMP)
@@ -60,7 +59,6 @@ class Recipe(db.Model):
     def to_dict(self):
         return {
             "recipe_id": self.recipe_id,
-            "recipe_img": self.recipe_img,
             "user_id": self.user_id,
             "recipe_name": self.recipe_name,
             "food_type_name": self.food_type.food_type_name,
@@ -72,12 +70,12 @@ class Recipe(db.Model):
 
 
 class Review(db.Model):
-    review_id = db.Column(db.BIGINT, primary_key=True)
     created_at = db.Column(db.TIMESTAMP)
     description = db.Column(db.TEXT)
-    recipe_id = db.Column(db.ForeignKey(Recipe.recipe_id))
+    review_id = db.Column(db.BIGINT, primary_key=True)
+    recipe_id = db.Column(db.ForeignKey(Recipe.recipe_id), primary_key=True)
     recipe = db.relationship("Recipe")
-    user_id = db.Column(db.ForeignKey(User.user_id))
+    user_id = db.Column(db.ForeignKey(User.user_id), primary_key=True)
     user = db.relationship("User", overlaps="reviews")
 
     def to_dict(self):
@@ -86,3 +84,4 @@ class Review(db.Model):
             "created_at": self.created_at,
             "description": self.description,
         }
+

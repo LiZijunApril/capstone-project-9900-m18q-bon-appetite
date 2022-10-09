@@ -10,9 +10,7 @@ import jwt
 from datetime import datetime
 from .models import FoodType, Recipe, Review, db, User
 
-
 blueprint = flask.Blueprint("views", __name__)
-
 
 SECOND = 1
 MINUTE = 60 * SECOND
@@ -95,25 +93,6 @@ def register_route():
     return flask.jsonify({"token": create_token(**user.to_dict())})
 
 
-EXIST_EMAIL_SCHEMA = schema.Schema({"email_address": schema.And(str, len, is_email)})
-
-
-@blueprint.route("/existemail", methods=["POST"])
-def exist_email_route():
-    if not isinstance(flask.request.json, dict):
-        return {"status": "Bad request"}, 400
-    try:
-        request = EXIST_EMAIL_SCHEMA.validate(flask.request.json.copy())
-    except:
-        return {"status": "Bad request"}, 400
-
-    email_address = request["email_address"]
-    if db.session.query(User).filter(User.email_address == email_address).first():
-        return flask.jsonify({"is_exist": 1})
-
-    return flask.jsonify({"is_exist": 0})
-
-
 TOKEN_SCHEMA = schema.Schema(
     {"email_address": schema.And(str, len, is_email), "password": schema.And(str, len)}
 )
@@ -193,7 +172,6 @@ def read_recipe_route(recipe_id):
 CREATE_RECIPE_SCHEMA = schema.Schema(
     {
         "recipe_name": schema.And(str, len),
-        "recipe_img": schema.And(str, len),
         "food_type_id": schema.And(schema.Use(int), lambda i: i > 0),
         "ingredients": schema.And(str, len),
         "nutrition": schema.And(str, len),
@@ -216,6 +194,7 @@ def update_recipe_route(recipe_id):
     if recipe.user_id != current_user_id:
         return {"status": "Permission denied"}, 401
 
+    print("recipe", recipe)
     for k in request:
         if k == "recipe_name":
             recipe.recipe_name = request["recipe_name"]
@@ -225,8 +204,6 @@ def update_recipe_route(recipe_id):
             recipe.ingredients = request["ingredients"]
         elif k == "nutrition":
             recipe.nutrition = request["nutrition"]
-        elif k == "recipe_img":
-            recipe.recipe_img = request["recipe_img"]
 
     recipe.updated_at = datetime.now()
 
@@ -239,7 +216,6 @@ def update_recipe_route(recipe_id):
 CREATE_RECIPE_SCHEMA = schema.Schema(
     {
         "recipe_name": schema.And(str, len),
-        "recipe_img": schema.And(str, len),
         "food_type_id": schema.And(schema.Use(int), lambda i: i > 0),
         "ingredients": schema.And(str, len),
         "nutrition": schema.And(str, len),
@@ -256,9 +232,9 @@ def create_recipe_route():
         return {"status": "Bad request"}, 400
 
     if (
-        db.session.query(Recipe)
-        .filter(Recipe.recipe_name == request["recipe_name"])
-        .first()
+            db.session.query(Recipe)
+                    .filter(Recipe.recipe_name == request["recipe_name"])
+                    .first()
     ):
         return {"status": "Conflict"}, 409
 
@@ -266,7 +242,6 @@ def create_recipe_route():
 
     recipe.created_at = datetime.now()
     recipe.recipe_name = request["recipe_name"]
-    recipe.recipe_img = request["recipe_img"]
     recipe.food_type_id = request["food_type_id"]
     recipe.ingredients = request["ingredients"]
     recipe.nutrition = request["nutrition"]
@@ -274,11 +249,7 @@ def create_recipe_route():
     db.session.merge(recipe)
     db.session.commit()
 
-    addRecipe = (
-        db.session.query(Recipe)
-        .filter(Recipe.recipe_name == request["recipe_name"])
-        .first()
-    )
+    addRecipe = db.session.query(Recipe).filter(Recipe.recipe_name == request["recipe_name"]).first()
     return flask.jsonify(addRecipe.to_dict())
 
 
@@ -398,7 +369,6 @@ def read_review_route():
 @blueprint.route("/foodtypes", methods=["GET"])
 @token_required
 def read_foodtypes_route():
-
     food_types = db.session.query(FoodType)
     response = [{**m.to_dict()} for m in food_types]
     return flask.jsonify(response)
