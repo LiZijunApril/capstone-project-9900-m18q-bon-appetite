@@ -151,7 +151,7 @@ def read__user_route(user_id):
 
     user = db.session.query(User).filter(User.user_id == user_id).first()
     if not user:
-        return {"status": "Not Found"}, 404
+        return {"status": "Not Found"}, 404    
 
     recipes = user.recipes
     is_followed = 1 if (any(f.followed_id == user.user_id for f in current_user_followed_list) ) else 0
