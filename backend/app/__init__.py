@@ -1,13 +1,13 @@
 import flask
 import flask_cors
 
-<<<<<<< Updated upstream
-from . import views
-from .models import db
-=======
+# <<<<<<< Updated upstream
+# from . import views
+from .Model.model import db
+# =======
 from app.Controller import *
 from app.Model import *
->>>>>>> Stashed changes
+# >>>>>>> Stashed changes
 
 
 app = flask.Flask(__name__, instance_relative_config=True)
@@ -26,11 +26,11 @@ def before_first_request():
         db.session.commit()
 
 
-<<<<<<< Updated upstream
-app.register_blueprint(views.blueprint, url_prefix="/api")
-=======
+# <<<<<<< Updated upstream
+# app.register_blueprint(views.blueprint, url_prefix="/api")
+# =======
 app.register_blueprint(follow.blueprint, url_prefix="/api")
 app.register_blueprint(recipe.blueprint, url_prefix="/api")
 app.register_blueprint(review.blueprint, url_prefix="/api")
 app.register_blueprint(user.blueprint, url_prefix="/api")
->>>>>>> Stashed changes
+# >>>>>>> Stashed changes

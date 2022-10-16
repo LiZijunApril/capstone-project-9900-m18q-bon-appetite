@@ -1,8 +1,16 @@
+from datetime import datetime
+from email.policy import default
 import flask_sqlalchemy
 
 
 db = flask_sqlalchemy.SQLAlchemy()
 
+
+class Cooked(db.Model):
+    __tablename__ = 'cooked'
+    user_id = db.Column(db.TEXT, db.ForeignKey('user.user_id'), primary_key=True)
+    recipe_id = db.Column(db.BIGINT, db.ForeignKey('recipe.recipe_id'), primary_key=True)
+    # timestamp = db.Column(db.TIMESTAMP, default=datetime.now)
 
 class User(db.Model):
     followed_list = db.relationship(
@@ -19,6 +27,7 @@ class User(db.Model):
     user_id = db.Column(db.TEXT, primary_key=True)
     recipes = db.relationship("Recipe", primaryjoin="Recipe.user_id == User.user_id", lazy='dynamic')
     reviews = db.relationship("Review", primaryjoin="Review.user_id == User.user_id",lazy='dynamic')
+    cooked = db.relationship('Cooked', foreign_keys=[Cooked.user_id],primaryjoin="Cooked.user_id == User.user_id",backref=db.backref('recipe', lazy='joined'),lazy='dynamic',cascade='all, delete-orphan')
 
     def to_dict(self):
         return {
@@ -28,6 +37,18 @@ class User(db.Model):
             "phone": self.phone,
             "user_id": self.user_id,
         }
+
+    def I_cook(self, cooked_recipe):
+        f  = Cooked.query.filter_by(user_id=self.user_id, recipe_id=cooked_recipe.recipe_id).first()
+        if f == None:
+            k = Cooked(user_id=self.user_id, recipe_id=cooked_recipe.recipe_id)
+            db.session.add(k)
+            db.session.commit()
+            return "Add successful"
+        if f is not None:
+            db.session.delete(f)
+            db.session.commit()
+            return "Delete successful"        
 
 
 class FollowedAssociation(db.Model):
@@ -64,6 +85,7 @@ class Recipe(db.Model):
     food_type_id = db.Column(db.ForeignKey(FoodType.food_type_id))
     food_type = db.relationship("FoodType")
     ingredients= db.relationship("IngredientAssociation",back_populates="recipe")
+    cooked_by = db.relationship('Cooked', foreign_keys=[Cooked.recipe_id],primaryjoin="Recipe.recipe_id == Cooked.recipe_id", backref=db.backref('user', lazy='joined'), lazy='dynamic', cascade='all, delete-orphan')
 
     def to_dict(self):
         return {
@@ -79,6 +101,31 @@ class Recipe(db.Model):
             "updated_at": self.updated_at,
         }
 
+    def I_cooked(self, current_user):
+        if not self.is_cooked(current_user):
+            f = Cooked(user_id=current_user, recipe_id=self)
+            db.session.add(f)
+            db.session.commit()
+            return "Add successful!"
+
+        if self.is_cooked(current_user):
+            f  = self.cooked_by.filter_by(user_id=current_user.user_id, recipe_id=self.recipe_id).first()
+            db.session.delete(f)
+            db.session.commit()
+            return "Delete successful"
+
+    def uncooked_by(self, current_user):
+        f = self.cooked_by.filter_by(user_id=current_user.user_id).first()
+        if f:
+            db.session.delete(f)
+
+    def is_cooked(self, current_user):
+        if current_user.user_id is None:
+            return False
+        return self.cooked_by.filter_by(user_id=current_user.user_id).first() is not None
+
+    def is_cooked_by(self):
+        return self.cooked_by.filter_by().order_by(self.created_at).all()
 
 class Review(db.Model):
     review_id = db.Column(db.BIGINT, primary_key=True)

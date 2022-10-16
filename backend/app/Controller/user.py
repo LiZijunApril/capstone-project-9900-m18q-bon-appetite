@@ -1,8 +1,10 @@
 from functools import wraps
 from time import time as now
+from urllib import request
 import uuid
 import re
 import json
+from app.Model.model import Cooked
 import flask
 import schema
 import bcrypt
@@ -15,6 +17,7 @@ blueprint = flask.Blueprint("users", __name__)
 
 EMAIL_REGEX = r"\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,}\b"
 
+PER_PAGE = 20
 
 def is_email(email_address):
     return re.fullmatch(EMAIL_REGEX, email_address)
@@ -127,9 +130,6 @@ def login_route():
     return flask.jsonify({"token": create_token(**user.to_dict())})
 
 
-
-
-
 @blueprint.route("/currentuser", methods=["GET"])
 @token_required
 def read_current_user_route():
@@ -157,3 +157,46 @@ def read__user_route(user_id):
     is_followed = 1 if (any(f.followed_id == user.user_id for f in current_user_followed_list) ) else 0
 
     return flask.jsonify({**user.to_dict(),"recipes":[{**recipe.to_dict()} for recipe in recipes],"is_followed":is_followed })
+
+
+@blueprint.route("/user/published", methods=["GET","POST"])
+@token_required
+def read_published_route():
+    page = flask.request.args.get('page', 1, type=int)
+    current_user_id = flask.g.token["user_id"]
+    recipes_list=Recipe.query.filter_by(user_id=current_user_id).order_by(Recipe.created_at.desc()).paginate(page, per_page=PER_PAGE).items
+    output = []
+    for recipe in recipes_list:
+        output.append({
+            "recipe_name":recipe.recipe_name,
+            "photo_thumbnail":recipe.recipe_img,
+            "recipe_id":recipe.recipe_id
+        })
+
+    return flask.jsonify({"Published recipes":output})
+
+
+@blueprint.route("/ICanCook/<recipe_id>", methods=["POST"])
+@token_required
+def I_can_cook_route(recipe_id):
+    recipe = Recipe.query.filter_by(recipe_id=recipe_id).first()
+    current_user_id = flask.g.token["user_id"]
+    if current_user_id is None:
+        return {"status": "Not Found"}, 404   
+    user = User.query.filter_by(user_id=current_user_id).first()
+    result = user.I_cook(recipe)
+    # return flask.jsonify({"I Can Cook!":user.I_cook(recipe)})
+    return flask.jsonify({"I CAN COOK!":result})
+    
+
+@blueprint.route("/<user_id>/cooked", methods=["GET"])
+@token_required
+def read_cooked_route(user_id):
+    user = User.query.filter_by(user_id=user_id).first()
+    cooked_recipes = Recipe.query.join(Cooked, Cooked.recipe_id == Recipe.recipe_id).filter(Cooked.user_id == user.user_id).all()
+    # cooked_recipe = Recipe.query.join(Cooked, Cooked.recipe_id == Recipe.recipe_id).filter(Cooked.user_id == user.user_id).order_by(Cooked.timestamp.desc())
+    result = []
+    for cooked_recipe in cooked_recipes:
+        result.append(cooked_recipe.to_dict())
+    return flask.jsonify({"I cooked!": result})
+    # return flask.jsonify({"I cooked!": cooked_recipe.to_dict() for cooked_recipe in cooked_recipe})
